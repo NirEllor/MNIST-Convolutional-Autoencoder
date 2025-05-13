@@ -164,21 +164,26 @@ for model_name, channels in model_configs:
 
         optimizer = optim.Adam(model.parameters(), lr=1e-4)
         criterion = nn.L1Loss()
+        best_test_loss = float('inf')
+        best_model_state = None
         train_loss = None
         test_loss = None
 
         best_loss = float('inf')
         epochs_no_improve = 0
         patience = 5  # אפשר גם 7 או 10
+        min_delta = 1e-4
 
-        for epoch in range(1, 100):  # שים מספר גדול – נעצור אוטומטית
+        for epoch in range(1, 11):  # שים מספר גדול – נעצור אוטומטית
             train_loss = train(model, train_loader, optimizer, criterion, device)
             test_loss = evaluate(model, test_loader, criterion, device)
             print(f"Epoch {epoch}: Train Loss = {train_loss:.4f}, Test Loss = {test_loss:.4f}")
 
-            if test_loss < best_loss - 1e-4:  # שיפור קטן נחשב
-                best_loss = test_loss
+            if test_loss < best_test_loss - min_delta:
+                best_test_loss = test_loss
                 epochs_no_improve = 0
+                best_model_state = model.state_dict()
+
             else:
                 epochs_no_improve += 1
 
@@ -186,11 +191,14 @@ for model_name, channels in model_configs:
                 print(f"Early stopping at epoch {epoch}")
                 break
 
+        model.load_state_dict(best_model_state)
+        torch.save(best_model_state, f'best_{model_name}_latent{latent_dim}.pt')
+
         train_losses.append(train_loss)
-        test_losses.append(test_loss)
+        test_losses.append(best_test_loss)
 
         # Show reconstructions
-        print(f"\nShowing reconstructions for {model_name} model with latent_dim={latent_dim}")
+        # print(f"\nShowing reconstructions for {model_name} model with latent_dim={latent_dim}")
         show_reconstructions(model, test_loader, device)
 
     # Plotting loss vs latent_dim for this model
