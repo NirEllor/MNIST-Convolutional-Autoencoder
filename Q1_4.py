@@ -3,7 +3,7 @@ import torch.optim as optim
 from encoder import Encoder
 from train import train_autoencoder
 from eval import evaluate_autoencoder
-from plots import show_reconstructions, plot_latent_space
+from plots import show_reconstructions
 from data import *
 
 latent_dims = [4, 16]
@@ -11,10 +11,20 @@ model_configs = [("small", (4, 8, 16)), ("large", (16, 32, 64))]
 
 
 def Q1_4(pre_trained=False):
+    """
+    Runs Q1 and Q4:
+    - If pre_trained=False: trains autoencoders from scratch (Q1)
+    - If pre_trained=True: uses pretrained encoder (from Q2) and trains decoder only (Q4)
+
+    Args:
+        pre_trained (bool): Whether to load and freeze a pretrained encoder
+    """
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     for model_name, channels in model_configs:
+        if pre_trained and (model_name == "small" or  channels ==(4, 8, 16)):
+            break
         train_losses = []
         test_losses = []
 
@@ -75,6 +85,5 @@ def Q1_4(pre_trained=False):
             # Show reconstructions
             print(f"\nShowing reconstructions for {model_name} model with latent_dim={latent_dim}")
             show_reconstructions(model, test_loader, device)
-            # plot_latent_space(latent_dims, train_losses, test_losses, model_name)
 
 
