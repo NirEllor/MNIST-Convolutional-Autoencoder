@@ -61,3 +61,15 @@ def plot_metrics(train_losses, test_losses, train_accs, test_accs, title):
     plt.suptitle(title)
     plt.tight_layout()
     plt.show()
+
+def plot_latent_space(latent_dims, train_losses, test_losses, model_name):
+    # Plotting loss vs latent_dim for this model
+    plt.figure(figsize=(8, 5))
+    plt.plot(latent_dims, train_losses, marker='o', label='Train Loss')
+    plt.plot(latent_dims, test_losses, marker='s', label='Test Loss')
+    plt.title(f'{model_name.capitalize()} Model – Loss vs. Latent Dimension')
+    plt.xlabel('Latent Dimension')
+    plt.ylabel('Loss (L1)')
+    plt.grid(True)
+    plt.legend()
+    plt.show()

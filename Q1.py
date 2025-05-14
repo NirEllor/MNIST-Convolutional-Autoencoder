@@ -1,16 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
 from autoencoder import ConvAutoencoder
 from train import train_autoencoder
 from eval import evaluate_autoencoder
-from plots import show_reconstructions
+from plots import show_reconstructions, plot_latent_space
 from data import *
 
+latent_dims = [4, 16]
+model_configs = [("small", (4, 8, 16)), ("large", (16, 32, 64))]
+
+
 def Q1():
-    latent_dims = [4, 16]
-    model_configs = [("small", (4, 8, 16)), ("large", (16, 32, 64))]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -60,15 +61,6 @@ def Q1():
             # Show reconstructions
             # print(f"\nShowing reconstructions for {model_name} model with latent_dim={latent_dim}")
             show_reconstructions(model, test_loader, device)
+            plot_latent_space(latent_dims, train_losses, test_losses, model_name)
 
-        # Plotting loss vs latent_dim for this model
-        plt.figure(figsize=(8, 5))
-        plt.plot(latent_dims, train_losses, marker='o', label='Train Loss')
-        plt.plot(latent_dims, test_losses, marker='s', label='Test Loss')
-        plt.title(f'{model_name.capitalize()} Model – Loss vs. Latent Dimension')
-        plt.xlabel('Latent Dimension')
-        plt.ylabel('Loss (L1)')
-        plt.grid(True)
-        plt.legend()
-        plt.show()
 
