@@ -2,7 +2,9 @@ import torch
 import matplotlib.pyplot as plt
 
 
-def show_reconstructions(model, dataloader, device, n=10):
+import math
+
+def show_reconstructions(model, dataloader, device, n=30, n_cols=6):
     model.eval()
     imgs, _ = next(iter(dataloader))
     imgs = imgs[:n].to(device)
@@ -10,24 +12,27 @@ def show_reconstructions(model, dataloader, device, n=10):
     with torch.no_grad():
         recons = model(imgs)
 
-    # Undo normalization for visualization (if input was normalized to [-1, 1])
     imgs = denormalize(imgs).cpu().numpy()
     recons = denormalize(recons).cpu().numpy()
     print("Reconstruction range:", recons.min(), recons.max())
 
-    plt.figure(figsize=(n, 2))
+    n_rows = math.ceil(n / n_cols)
+
+    plt.figure(figsize=(n_cols * 2, n_rows * 4))  # Wider and taller
+
     for i in range(n):
         # Original
-        plt.subplot(2, n, i + 1)
+        plt.subplot(2 * n_rows, n_cols, i + 1)
         plt.imshow(imgs[i][0], cmap='gray')
         plt.axis('off')
 
         # Reconstructed
-        plt.subplot(2, n, i + 1 + n)
+        plt.subplot(2 * n_rows, n_cols, i + 1 + n_rows * n_cols)
         plt.imshow(recons[i][0], cmap='gray')
         plt.axis('off')
 
-    plt.suptitle("Top: Original, Bottom: Reconstructed")
+    plt.suptitle("Top: Original, Bottom: Reconstructed", fontsize=16)
+    plt.tight_layout()
     plt.show()
 
 def denormalize(tensor):

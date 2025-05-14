@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from encoder import Encoder
+from autoencoder import ConvAutoencoder
 from train import train_classifier
 from eval import evaluate_classifier
 from plots import plot_metrics
@@ -30,24 +31,29 @@ def get_dataloaders(train_dataset, use_subset):
     return train_loader, label, epochs, early_stopping, patience
 
 
-def init_models(encoder_class, latent_dim, channels, device, use_subset):
-    encoder = encoder_class(latent_dim=latent_dim, channels=channels).to(device)
+def init_models(encoder_class, latent_dim, channels, device, use_subset, pre_trained=False, pre_trained_encoder_path=""):
+    # Step 1: Create encoder and autoencoder
+    _encoder = encoder_class(latent_dim=latent_dim, channels=channels).to(device)
+
+    # Step 2: Load encoder weights from saved autoencoder if needed
+    if pre_trained and pre_trained_encoder_path:
+        _encoder = load_best_encoder(_encoder, latent_dim, channels, pre_trained, pre_trained_encoder_path, device)
+        for param in _encoder.parameters():
+            param.requires_grad = False
+
+    # Step 3: Initialize classifier
     mlp = ClassifierMLP(latent_dim=latent_dim).to(device)
-    if use_subset:
-        optimizer = optim.Adam(
-            list(encoder.parameters()) + list(mlp.parameters()),
-            lr=1e-4,  # reduced LR for stability on small data
-            weight_decay=1e-4  # more regularization on smaller dataset
-        )
-    else:
-        optimizer = optim.Adam(
-            list(encoder.parameters()) + list(mlp.parameters()),
-            lr=1e-4,
-            weight_decay=1e-5
-        )
+
+    # Step 4: Optimizer with only trainable params
+    params = filter(lambda p: p.requires_grad, list(_encoder.parameters()) + list(mlp.parameters()))
+    optimizer = optim.Adam(
+        params,
+        lr=1e-4,
+        weight_decay=1e-4 if use_subset else 1e-5
+    )
 
     criterion = nn.CrossEntropyLoss()
-    return encoder, mlp, optimizer, criterion
+    return _encoder, mlp, optimizer, criterion
 
 
 def train_with_logging(encoder, mlp, train_loader, test_loader, optimizer, criterion,
@@ -91,11 +97,12 @@ def train_with_logging(encoder, mlp, train_loader, test_loader, optimizer, crite
                  title=f"Classification ({label}) – latent_dim={latent_dim}, channels={channels}")
 
 
-def run_classifier_experiment(train_dataset, test_loader, encoder_class, latent_dim, channels, use_subset=False):
+def run_classifier_experiment(train_dataset, test_loader, encoder_class, latent_dim, channels, use_subset=False,
+                              pre_trained=False, pre_trained_encoder_path=""):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, label, epochs, early_stopping, patience = get_dataloaders(train_dataset, use_subset)
-    encoder, mlp, optimizer, criterion = init_models(encoder_class, latent_dim, channels, device, use_subset)
+    encoder, mlp, optimizer, criterion = init_models(encoder_class, latent_dim, channels, device, use_subset, pre_trained, pre_trained_encoder_path=pre_trained_encoder_path)
 
     train_with_logging(encoder, mlp, train_loader, test_loader, optimizer, criterion,
                        device, epochs, early_stopping, patience, label, latent_dim, channels)
@@ -106,15 +113,42 @@ def Q2():
         train_dataset, test_loader,
         encoder_class=Encoder,
         latent_dim=16,
-        channels=(4, 8, 16),
-        use_subset=False
+        channels=(16, 32, 64),
+        use_subset=False,
+        pre_trained=False
     )
 
     run_classifier_experiment(
         train_dataset, test_loader,
         encoder_class=Encoder,
         latent_dim=16,
-        channels=(4, 8, 16),
-        use_subset=True
+        channels=(16, 32, 64),
+        use_subset=True,
+        pre_trained = False
     )
+
+
+def Q3():
+    encoder_path = 'best_large_latent16.pt'
+
+    run_classifier_experiment(
+        train_dataset, test_loader,
+        encoder_class=Encoder,
+        latent_dim=16,
+        channels=(16, 32, 64),
+        use_subset=False,
+        pre_trained=True,
+        pre_trained_encoder_path=encoder_path
+    )
+
+    run_classifier_experiment(
+        train_dataset, test_loader,
+        encoder_class=Encoder,
+        latent_dim=16,
+        channels=(16, 32, 64),
+        use_subset=True,
+        pre_trained = True,
+        pre_trained_encoder_path=encoder_path
+    )
+
 
