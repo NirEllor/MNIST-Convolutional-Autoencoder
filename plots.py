@@ -1,0 +1,63 @@
+import torch
+import matplotlib.pyplot as plt
+
+
+def show_reconstructions(model, dataloader, device, n=10):
+    model.eval()
+    imgs, _ = next(iter(dataloader))
+    imgs = imgs[:n].to(device)
+
+    with torch.no_grad():
+        recons = model(imgs)
+
+    # Undo normalization for visualization (if input was normalized to [-1, 1])
+    imgs = denormalize(imgs).cpu().numpy()
+    recons = denormalize(recons).cpu().numpy()
+    print("Reconstruction range:", recons.min(), recons.max())
+
+    plt.figure(figsize=(n, 2))
+    for i in range(n):
+        # Original
+        plt.subplot(2, n, i + 1)
+        plt.imshow(imgs[i][0], cmap='gray')
+        plt.axis('off')
+
+        # Reconstructed
+        plt.subplot(2, n, i + 1 + n)
+        plt.imshow(recons[i][0], cmap='gray')
+        plt.axis('off')
+
+    plt.suptitle("Top: Original, Bottom: Reconstructed")
+    plt.show()
+
+def denormalize(tensor):
+    return (tensor + 1) / 2  # for inputs normalized with mean=0.5, std=0.5
+
+
+def plot_metrics(train_losses, test_losses, train_accs, test_accs, title):
+    epochs = range(1, len(train_losses) + 1)
+    plt.figure(figsize=(12, 5))
+
+    # Loss
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, train_losses, 'o-', label='Train Loss')
+    plt.plot(epochs, test_losses, 's-', label='Test Loss')
+    plt.xlabel("Epoch")
+    plt.ylabel("Cross-Entropy Loss")
+    plt.title("Loss vs Epochs")
+    plt.grid()
+    plt.legend()
+
+    # Accuracy
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, train_accs, 'o-', label='Train Accuracy')
+    plt.plot(epochs, test_accs, 's-', label='Test Accuracy')
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy vs Epochs")
+    plt.grid()
+    plt.legend()
+
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.show()
