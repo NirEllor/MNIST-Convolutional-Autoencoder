@@ -30,10 +30,22 @@ def get_dataloaders(train_dataset, use_subset):
     return train_loader, label, epochs, early_stopping, patience
 
 
-def init_models(encoder_class, latent_dim, channels, device):
+def init_models(encoder_class, latent_dim, channels, device, use_subset):
     encoder = encoder_class(latent_dim=latent_dim, channels=channels).to(device)
     mlp = ClassifierMLP(latent_dim=latent_dim).to(device)
-    optimizer = optim.Adam(list(encoder.parameters()) + list(mlp.parameters()), lr=1e-3)
+    if use_subset:
+        optimizer = optim.Adam(
+            list(encoder.parameters()) + list(mlp.parameters()),
+            lr=1e-4,  # reduced LR for stability on small data
+            weight_decay=1e-4  # more regularization on smaller dataset
+        )
+    else:
+        optimizer = optim.Adam(
+            list(encoder.parameters()) + list(mlp.parameters()),
+            lr=1e-4,
+            weight_decay=1e-5
+        )
+
     criterion = nn.CrossEntropyLoss()
     return encoder, mlp, optimizer, criterion
 
@@ -83,7 +95,7 @@ def run_classifier_experiment(train_dataset, test_loader, encoder_class, latent_
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, label, epochs, early_stopping, patience = get_dataloaders(train_dataset, use_subset)
-    encoder, mlp, optimizer, criterion = init_models(encoder_class, latent_dim, channels, device)
+    encoder, mlp, optimizer, criterion = init_models(encoder_class, latent_dim, channels, device, use_subset)
 
     train_with_logging(encoder, mlp, train_loader, test_loader, optimizer, criterion,
                        device, epochs, early_stopping, patience, label, latent_dim, channels)
