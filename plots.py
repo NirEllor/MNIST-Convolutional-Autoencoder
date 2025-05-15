@@ -230,7 +230,7 @@ def show_all_digits_variability(model, dataloader, device, n=10):
 
             # Reconstruction
             plt.subplot(2, n, i + 1 + n)
-            plt.imshow(recons[i][0].cpu(), cmap='gray')
+            plt.imshow(recons[i][0].detach().cpu().numpy(), cmap='gray')
             plt.axis('off')
 
         plt.suptitle(f"Digit {d} – Top: Original, Bottom: Reconstruction", fontsize=14)

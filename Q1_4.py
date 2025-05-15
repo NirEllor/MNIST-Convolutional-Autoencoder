@@ -5,7 +5,6 @@ from train import train_autoencoder
 from eval import evaluate_autoencoder
 from plots import show_reconstructions, plot_loss_only, plot_latent_space_separation, show_all_digits_variability
 from data import *
-from train import autoencoder_training_loop, log_autoencoder_training
 
 
 latent_dims = [4, 16]
@@ -31,6 +30,8 @@ def Q1_4(pre_trained=False):
         print(f"\n=== {model_name.upper()} model with channels {channels} ===")
 
         for latent_dim in latent_dims:
+            if pre_trained and latent_dim == 4:
+                continue
             print(f"\nTraining {model_name} model with latent_dim = {latent_dim}"
                   + (" using pretrained encoder" if pre_trained else " from scratch"))
 
