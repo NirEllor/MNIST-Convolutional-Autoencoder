@@ -87,3 +87,5 @@ def train_classifier(
         total += imgs.size(0)
 
     return total_loss / total, correct / total
+
+

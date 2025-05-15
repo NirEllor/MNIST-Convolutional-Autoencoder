@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 
 
 def denormalize(tensor: torch.Tensor) -> torch.Tensor:
@@ -100,6 +101,28 @@ def plot_metrics(train_losses, test_losses, train_accs, test_accs, title="Traini
     plt.tight_layout()
     plt.show()
 
+def plot_loss_only(train_losses, test_losses, title="Loss Curve"):
+    """
+    Plots training and testing loss over epochs.
+
+    Args:
+        train_losses (list): Training loss values.
+        test_losses (list): Testing loss values.
+        title (str): Plot title.
+    """
+    epochs = range(1, len(train_losses) + 1)
+    plt.figure(figsize=(6, 5))
+    plt.plot(epochs, train_losses, 'o-', label='Train Loss')
+    plt.plot(epochs, test_losses, 's-', label='Test Loss')
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title(title)
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 
 def plot_latent_space(latent_dims, train_losses, test_losses, model_name="Autoencoder"):
     """
@@ -124,3 +147,92 @@ def plot_latent_space(latent_dims, train_losses, test_losses, model_name="Autoen
     plt.grid(True)
     plt.legend()
     plt.show()
+
+
+def plot_latent_space_separation(encoder, dataloader, device, method='tsne', num_samples=1000):
+    encoder.eval()
+    latents = []
+    labels = []
+
+    with torch.no_grad():
+        for imgs, lbls in dataloader:
+            imgs = imgs.to(device)
+            z = encoder(imgs)
+            latents.append(z.cpu())
+            labels.append(lbls)
+
+            if len(latents) * imgs.size(0) >= num_samples:
+                break
+
+    latents = torch.cat(latents)[:num_samples]
+    labels = torch.cat(labels)[:num_samples]
+
+    if method == 'tsne':
+        projected = TSNE(n_components=2, perplexity=30, random_state=42).fit_transform(latents)
+    else:
+        from sklearn.decomposition import PCA
+        projected = PCA(n_components=2).fit_transform(latents)
+
+    plt.figure(figsize=(8, 6))
+    scatter = plt.scatter(projected[:, 0], projected[:, 1], c=labels, cmap='tab10', s=15)
+    plt.colorbar(scatter, ticks=range(10), label='Digit Class')
+    plt.title(f"{method.upper()} projection of latent space")
+    plt.xlabel("Component 1")
+    plt.ylabel("Component 2")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+def show_all_digits_variability(model, dataloader, device, n=10):
+    """
+    Shows reconstructions for each digit (0–9) to assess in-class variability using a Q4 model.
+
+    For each digit:
+    - Shows n original images (top row)
+    - Shows n reconstructions (bottom row)
+
+    Args:
+        model: The trained Q4 autoencoder (classification encoder + trained decoder).
+        dataloader: DataLoader (e.g., test_loader).
+        device: torch.device.
+        n: Number of samples per digit.
+    """
+    import matplotlib.pyplot as plt
+    import torch
+
+    model.eval()
+    digit_images = {d: [] for d in range(10)}
+
+    # Collect n samples per digit
+    with torch.no_grad():
+        for imgs, labels in dataloader:
+            for d in range(10):
+                mask = labels == d
+                digit_images[d].extend(imgs[mask])
+            if all(len(v) >= n for v in digit_images.values()):
+                break
+
+    # Plot per digit
+    for d in range(10):
+        imgs = torch.stack(digit_images[d][:n]).to(device)
+        recons = model(imgs)
+
+        imgs = (imgs + 1) / 2  # denormalize
+        recons = (recons + 1) / 2
+
+        plt.figure(figsize=(n, 2))
+        for i in range(n):
+            # Original
+            plt.subplot(2, n, i + 1)
+            plt.imshow(imgs[i][0].cpu(), cmap='gray')
+            plt.axis('off')
+
+            # Reconstruction
+            plt.subplot(2, n, i + 1 + n)
+            plt.imshow(recons[i][0].cpu(), cmap='gray')
+            plt.axis('off')
+
+        plt.suptitle(f"Digit {d} – Top: Original, Bottom: Reconstruction", fontsize=14)
+        plt.tight_layout()
+        plt.show()

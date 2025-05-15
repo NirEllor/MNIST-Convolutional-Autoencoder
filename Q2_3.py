@@ -68,6 +68,7 @@ def init_models(encoder_class, latent_dim, channels, device, use_subset, pre_tra
         _encoder = load_best_encoder(_encoder, latent_dim, channels, pre_trained, pre_trained_encoder_path, device)
         for param in _encoder.parameters():
             param.requires_grad = False
+        _encoder.eval()
 
     # Step 3: Initialize classifier
     mlp = ClassifierMLP(latent_dim=latent_dim).to(device)
