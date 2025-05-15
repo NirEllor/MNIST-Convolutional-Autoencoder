@@ -12,16 +12,16 @@ def main():
     - Q4: Train decoder using frozen encoder from Q2
     """
 
-    # print("=== Running Q1: Autoencoder from scratch ===")
-    # Q1_4(pre_trained=False)
-    #
-    # print("\n=== Running Q2: Classifier (encoder + MLP) ===")
-    # Q2()
-    #
-    # print("\n=== Running Q3: Frozen encoder + MLP ===")
-    # Q3()
-    #
-    # print("\n=== Running Q4: Train decoder with pretrained classification encoder ===")
+    print("=== Running Q1: Autoencoder from scratch ===")
+    Q1_4(pre_trained=False)
+
+    print("\n=== Running Q2: Classifier (encoder + MLP) ===")
+    Q2()
+
+    print("\n=== Running Q3: Frozen encoder + MLP ===")
+    Q3()
+
+    print("\n=== Running Q4: Train decoder with pretrained classification encoder ===")
     Q1_4(pre_trained=True)
 
 
