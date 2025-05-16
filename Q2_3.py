@@ -223,4 +223,3 @@ def Q3():
         pre_trained_encoder_path=encoder_path
     )
 
-

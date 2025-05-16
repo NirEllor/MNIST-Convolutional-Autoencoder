@@ -91,6 +91,5 @@ def Q1_4(pre_trained=False):
             plot_loss_only(train_losses, test_losses,
                            title=f"Loss Curve – {model_name}, latent_dim={latent_dim}")
             print("Showing in-class variability")
-            if pre_trained:
-                plot_latent_space_separation(encoder, test_loader, device, method='tsne')
-                show_all_digits_variability(model, test_loader, device)
+            show_all_digits_variability(model, test_loader, device)
+            plot_latent_space_separation(encoder, test_loader, device, method='tsne')
