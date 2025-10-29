@@ -27,6 +27,7 @@ Input (28×28 grayscale image)
   → Bottleneck / Latent Vector  
   → ConvTranspose2D layers (reconstruction)  
   → Output (28×28 grayscale image)
+```
 
 ## 📊 Tech Stack
 
