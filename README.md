@@ -31,12 +31,14 @@ Input (28×28 grayscale image)
 
 ## 📊 Tech Stack
 
-| Category  | Tools                                |
-| --------- | ------------------------------------ |
-| Language  | Python 3.x                           |
-| Framework | PyTorch                              |
-| Dataset   | MNIST (handwritten digits)           |
-| Use-Case  | Unsupervised Learning · Autoencoders |
+| Category    | Tools                                        |
+| ----------- | -------------------------------------------- |
+| Language    | Python 3.x                                   |
+| Framework   | PyTorch                                      |
+| Dataset     | Fashion-MNIST                                |
+| Optimizers  | SGD · Adam · AdamW · Shampoo                 |
+| Use-Case    | Optimization Research · Autoencoders         |
+
 
 ## 🔧 Installation & Setup
 Clone the repository:
