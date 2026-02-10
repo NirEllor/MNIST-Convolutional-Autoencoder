@@ -35,9 +35,8 @@ Input (28×28 grayscale image)
 | ----------- | -------------------------------------------- |
 | Language    | Python 3.x                                   |
 | Framework   | PyTorch                                      |
-| Dataset     | Fashion-MNIST                                |
-| Optimizers  | SGD · Adam · AdamW · Shampoo                 |
-| Use-Case    | Optimization Research · Autoencoders         |
+| Dataset     | MNIST (handwritten digits)                   |
+| Use-Case    |Unsupervised Learning · Autoencoders          |
 
 
 ## 🔧 Installation & Setup
